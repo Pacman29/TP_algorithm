@@ -17,13 +17,14 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 template<typename T>
 class Queue
 {
 
 public:
-    Queue(size_t buffer = 1000000)
+    Queue(size_t buffer = 3)
     {
         this->_buffer = buffer;
         this->arr = (T*)malloc(this->_buffer*sizeof(T));
@@ -37,11 +38,35 @@ public:
         free(this->arr);
     }
 
-    void push(T* value)
+    int push(T* value)
     {
-        this->arr[this->head++] = *value;
-        if(!(this->head % this->_buffer))
-            this->head = 0;
+        this->arr[this->head] = *value;
+        if(((this->head+1 )% this->_buffer) == this->tail)
+        {
+            T* tmp = (T*)malloc(this->_buffer*2*sizeof(T));
+            if(tmp)
+            {
+                memcpy(tmp, this->arr, (this->head+1)*sizeof(T));
+                if(this->tail > this->head)
+                {
+                    memcpy(tmp+this->_buffer+this->tail, this->arr+this->tail,
+                           (this->_buffer-this->tail)*sizeof(T));
+
+                    this->tail += this->_buffer;
+                }/*
+                printf("\n");
+                for(int i = 0; i < this->_buffer*2; ++i)
+                    printf("%d ",this->arr[i]);*/
+                this->_buffer*=2;
+                free(this->arr);
+                this->arr = tmp;
+            }
+            else
+                return -1;
+        }
+        this->head = (++this->head) % this->_buffer;
+        //printf("head: %d tail: %d\n",this->head,this->tail);
+        return 0;
     }
 
     int pop(T* value)
